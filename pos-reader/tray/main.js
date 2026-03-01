@@ -9,16 +9,20 @@ const READER_URL = `http://localhost:${PORT}`;
 let lastUid = null;
 const serverApp = express();
 serverApp.use(express.json());
-serverApp.use((req, res, next) => {
+function corsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.get('Access-Control-Request-Private-Network')) {
-    res.setHeader('Access-Control-Allow-Private-Network', 'true');
-  }
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
+}
+serverApp.use((req, res, next) => {
+  corsHeaders(res);
   next();
 });
-serverApp.options('*', (req, res) => res.sendStatus(204));
+serverApp.options('*', (req, res) => {
+  corsHeaders(res);
+  res.sendStatus(204);
+});
 serverApp.post('/uid/clear', (req, res) => {
   lastUid = null;
   res.json({ ok: true });

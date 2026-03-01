@@ -14,16 +14,20 @@ import express from 'express';
 const PORT = Number(process.env.POS_READER_PORT) || 31337;
 const app = express();
 app.use(express.json());
-app.use((req, res, next) => {
+function corsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.get('Access-Control-Request-Private-Network')) {
-    res.setHeader('Access-Control-Allow-Private-Network', 'true');
-  }
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
+}
+app.use((req, res, next) => {
+  corsHeaders(res);
   next();
 });
-app.options('*', (req, res) => res.sendStatus(204));
+app.options('*', (req, res) => {
+  corsHeaders(res);
+  res.sendStatus(204);
+});
 
 let lastUid = null;
 
