@@ -18,6 +18,9 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.get('Access-Control-Request-Private-Network')) {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
   next();
 });
 app.options('*', (req, res) => res.sendStatus(204));

@@ -216,7 +216,8 @@ export default function AdminCustomerDetail() {
           </button>
           <p className="text-xs text-[var(--travel-muted)] mt-3">
             <strong>Installed the tray app?</strong> Launch <strong>Travel Wallet NFC Reader</strong> from the Start Menu (or check the system tray). It must be running on this PC. <a href="http://localhost:31337/uid" target="_blank" rel="noopener noreferrer" className="text-[var(--travel-deep)] underline">Test reader</a> (opens in new tab; you should see <code className="bg-[var(--travel-cream)] px-1 rounded">{`{"uid":null}`}</code>).<br />
-            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>). Then click &quot;Scan card&quot; and tap the card.
+            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>). Then click &quot;Scan card&quot; and tap the card.<br />
+            <strong>Still blocked?</strong> Chrome can block the page from reaching localhost. Install the latest tray app (it sends the right header), or in Chrome go to this site’s settings and allow &quot;Local network access&quot;.
           </p>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {customer.nfcIdentifiers && customer.nfcIdentifiers.length > 0 && (
