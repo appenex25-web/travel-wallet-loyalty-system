@@ -1,0 +1,43 @@
+:root {
+  /* Brand */
+  --tw-color-primary: #2F7DFF;
+  --tw-color-accent:  #4FA3FF;
+  --tw-color-sky:     #EAF6FF;
+  --tw-color-ink:     #0B1B3A;
+
+  /* Glass */
+  --tw-glass-bg: rgba(255, 255, 255, 0.16);
+  --tw-glass-bg-strong: rgba(255, 255, 255, 0.22);
+  --tw-glass-border: rgba(255, 255, 255, 0.30);
+  --tw-glass-ring: rgba(255, 255, 255, 0.12);
+  --tw-glass-blur: 28px;
+
+  /* Shadows / Glow */
+  --tw-shadow-soft: 0 18px 55px rgba(47, 125, 255, 0.18);
+  --tw-shadow-card: 0 22px 70px rgba(47, 125, 255, 0.20);
+  --tw-glow-edge: 0 0 0 1px rgba(255,255,255,0.22), 0 0 45px rgba(79,163,255,0.22);
+  --tw-glow-button: 0 14px 40px rgba(47,125,255,0.35);
+}
+
+/* Optional: you can copy these into Tailwind via @layer components */
+.tw-glass {
+  background: var(--tw-glass-bg);
+  border: 1px solid var(--tw-glass-border);
+  backdrop-filter: blur(var(--tw-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tw-glass-blur));
+  box-shadow: var(--tw-shadow-card);
+}
+
+.tw-glass-soft {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.26);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: var(--tw-shadow-soft);
+}
+
+.tw-btn-primary {
+  background: linear-gradient(180deg, var(--tw-color-accent), var(--tw-color-primary));
+  box-shadow: var(--tw-glow-button);
+  color: white;
+}

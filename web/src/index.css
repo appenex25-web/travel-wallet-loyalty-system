@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+
+:root {
+  --travel-deep: #0f766e;
+  --travel-deep-hover: #0d9488;
+  --travel-sky: #0284c7;
+  --travel-sky-light: #38bdf8;
+  --travel-warm: #ea580c;
+  --travel-warm-light: #fb923c;
+  --travel-cream: #fffbeb;
+  --travel-card: rgba(255, 255, 255, 0.96);
+  --travel-card-border: rgba(15, 118, 110, 0.2);
+  --travel-sidebar: #0f766e;
+  --travel-sidebar-hover: #134e4a;
+  --travel-text: #1e293b;
+  --travel-muted: #64748b;
+  /* POS / UI Kit design tokens (spec.md + theme.css) */
+  --tw-color-primary: #2F7DFF;
+  --tw-color-accent: #4FA3FF;
+  --tw-color-sky: #EAF6FF;
+  --tw-color-ink: #0B1B3A;
+  --tw-glass-bg: rgba(255, 255, 255, 0.16);
+  --tw-glass-bg-strong: rgba(255, 255, 255, 0.22);
+  --tw-glass-border: rgba(255, 255, 255, 0.30);
+  --tw-glass-ring: rgba(255, 255, 255, 0.12);
+  --tw-glass-blur: 28px;
+  --tw-shadow-soft: 0 18px 55px rgba(47, 125, 255, 0.18);
+  --tw-shadow-card: 0 22px 70px rgba(47, 125, 255, 0.20);
+  --tw-glow-edge: 0 0 0 1px rgba(255,255,255,0.22), 0 0 45px rgba(79,163,255,0.22);
+  --tw-glow-button: 0 14px 40px rgba(47,125,255,0.35);
+  --pos-primary: #2F7DFF;
+  --pos-accent: #4FA3FF;
+  --pos-white: #FFFFFF;
+  --pos-sky: #EAF6FF;
+  --navy: #0f766e;
+  --navy-light: #134e4a;
+  --gold: #ea580c;
+  --gold-light: #fb923c;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--travel-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Background: Mount Everest / clouds sky, subtle blue overlay (no grey wash) */
+.app-backdrop {
+  position: relative;
+  min-height: 100vh;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(230, 245, 255, 0.35) 0%,
+      rgba(20, 120, 255, 0.15) 100%
+    ),
+    url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=85') center center/cover no-repeat fixed;
+  background-color: #a8d4f0;
+}
+
+/* POS: spec overlay + Mount Everest image from UI kit (mount everest.png) */
+.pos-backdrop {
+  position: relative;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(234,246,255,0.45) 0%, rgba(79,163,255,0.10) 55%, rgba(47,125,255,0.06) 100%),
+    url('/assets/mount-everest.png') center center/cover no-repeat fixed;
+  background-color: #b8dcf5;
+}
+
+.glass-panel {
+  background: var(--travel-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--travel-card-border);
+  box-shadow: 0 8px 32px rgba(15, 118, 110, 0.12);
+}
+
+/* POS glass card: white 14–18%, blur 24–32px, border white 25–35%, 28px radius, blue glow + inner highlight */
+.glass-card-pos {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 28px;
+  box-shadow:
+    0 20px 60px rgba(47, 125, 255, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* POS bottom tiles: lighter floating glass */
+.glass-tile-pos {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  box-shadow:
+    0 12px 40px rgba(47, 125, 255, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.glass-tile-pos:hover {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 16px 48px rgba(47, 125, 255, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.btn-pos-primary {
+  background: linear-gradient(180deg, #4FA3FF 0%, #2F7DFF 100%);
+  color: #FFFFFF;
+  border-radius: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(47, 125, 255, 0.4);
+}
+.btn-pos-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 28px rgba(47, 125, 255, 0.5);
+}
+.btn-pos-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-pos {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 16px;
+  color: #1e293b;
+}
+.input-pos::placeholder {
+  color: #64748b;
+}
+.input-pos:focus {
+  outline: none;
+  border-color: #4FA3FF;
+  box-shadow: 0 0 0 2px rgba(79, 163, 255, 0.25);
+}
+
+.content-center {
+  text-align: center;
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pos-input-spec::placeholder {
+  color: rgba(11, 27, 58, 0.45);
+}
+
+@media (max-width: 1200px) {
+  .pos-cards-grid {
+    grid-template-columns: 360px !important;
+  }
+}

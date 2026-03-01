@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NfcReader</RootNamespace>
+    <AssemblyName>NfcReader</AssemblyName>
+    <Description>Read NTAG UID from ACR122U and POST to pos-reader (localhost:31337).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PCSC" Version="7.0.1" />
+  </ItemGroup>
+</Project>

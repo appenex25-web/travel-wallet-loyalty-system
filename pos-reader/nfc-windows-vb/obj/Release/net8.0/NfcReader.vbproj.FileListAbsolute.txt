@@ -1,0 +1,17 @@
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\NfcReader.exe
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\NfcReader.deps.json
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\NfcReader.runtimeconfig.json
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\NfcReader.dll
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\NfcReader.pdb
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\bin\Release\net8.0\PCSC.dll
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.vbproj.AssemblyReference.cache
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.AssemblyInfoInputs.cache
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.AssemblyInfo.vb
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.vbproj.CoreCompileInputs.cache
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.vbproj.Up2Date
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.dll
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\refint\NfcReader.dll
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.pdb
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\NfcReader.genruntimeconfig.cache
+C:\Users\Administrator\Desktop\travel-wallet-loyalty-system\pos-reader\nfc-windows-vb\obj\Release\net8.0\ref\NfcReader.dll

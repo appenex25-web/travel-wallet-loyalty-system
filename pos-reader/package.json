@@ -1,0 +1,19 @@
+{
+  "name": "pos-reader",
+  "version": "1.0.0",
+  "description": "ACR122U NFC reader helper for POS - exposes last card UID over HTTP",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:reader": "node server.js --with-reader",
+    "set-uid": "node set-uid.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "optionalDependencies": {
+    "nfc-pcsc": "^0.8.1"
+  }
+}
