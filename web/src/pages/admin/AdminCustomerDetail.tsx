@@ -216,9 +216,18 @@ export default function AdminCustomerDetail() {
           </button>
           <p className="text-xs text-[var(--travel-muted)] mt-3">
             <strong>Installed the tray app?</strong> Launch <strong>Travel Wallet NFC Reader</strong> from the Start Menu (or check the system tray). It must be running on this PC. <a href="http://localhost:31337/uid" target="_blank" rel="noopener noreferrer" className="text-[var(--travel-deep)] underline">Test reader</a> (opens in new tab; you should see <code className="bg-[var(--travel-cream)] px-1 rounded">{`{"uid":null}`}</code>).<br />
-            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>). Then click &quot;Scan card&quot; and tap the card.<br />
-            <strong>Still blocked?</strong> Browsers often block this page (on your server) from reaching localhost. <strong>Workaround:</strong> on this same PC open a terminal in the project folder, run <code className="bg-[var(--travel-cream)] px-1 rounded">cd web &amp;&amp; npm run dev</code>, then in the browser open <strong>http://localhost:5173</strong>, log in, go to this customer and use Attach NFC card there. Scan card will work because both the page and the reader are on localhost. You can also paste the UID manually above and click Link card.
+            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>).
           </p>
+          <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <p className="text-sm font-medium text-amber-800 mb-2">Reader still not reachable? Link the card by pasting the UID:</p>
+            <ol className="text-xs text-amber-900 list-decimal list-inside space-y-1">
+              <li>Make sure <strong>Travel Wallet NFC Reader</strong> (tray app) is running on this PC.</li>
+              <li>Open <a href="http://localhost:31337/uid" target="_blank" rel="noopener noreferrer" className="text-[var(--travel-deep)] underline font-medium">http://localhost:31337/uid</a> in a <strong>new tab</strong>. You should see something like <code className="bg-white/80 px-1 rounded">{`{"uid":null}`}</code>.</li>
+              <li>Tap the NFC card. You need the <strong>VB bridge</strong> or reader app running so the UID is sent to the helper; then refresh the /uid tab and the UID will appear, e.g. <code className="bg-white/80 px-1 rounded">{`{"uid":"04a1b2c3d4e5f6"}`}</code>. Or run <code className="bg-white/80 px-1 rounded">npm run set-uid</code> in the pos-reader folder and paste the UID from your reader app.</li>
+              <li>Copy the UID value (e.g. <code className="bg-white/80 px-1 rounded">04a1b2c3d4e5f6</code>), paste it into the &quot;UID will appear after scan, or paste manually&quot; box above, then click <strong>Link card</strong>.</li>
+            </ol>
+            <p className="text-xs text-amber-800 mt-2">Or run the app locally: in the project run <code className="bg-white/80 px-1 rounded">cd web &amp;&amp; npm run dev</code>, open <strong>http://localhost:5173</strong>, log in and use Attach NFC card here — Scan card will work from that page.</p>
+          </div>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {customer.nfcIdentifiers && customer.nfcIdentifiers.length > 0 && (
             <div className="mt-4">
