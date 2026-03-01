@@ -73,6 +73,10 @@ export class Booking {
   @Column({ type: 'int', nullable: true })
   numberOfPeople: number | null;
 
+  /** Set when agent marks "Paid in office" for pay_later bookings */
+  @Column({ type: 'boolean', default: false })
+  paidInOffice: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

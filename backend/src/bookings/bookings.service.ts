@@ -50,6 +50,7 @@ export class BookingsService {
       currency,
       status,
       walletApplied: 0,
+      paidInOffice: false,
       externalReference: options?.externalReference ?? undefined,
       bookingType: options?.bookingType ?? 'other',
       title: options?.title ?? undefined,
@@ -212,6 +213,13 @@ export class BookingsService {
     return this.bookingRepo.save(booking);
   }
 
+  /** Agent marks booking as paid in office (for pay_later). Enables Confirm. */
+  async markPaidInOffice(bookingId: string) {
+    const booking = await this.findById(bookingId);
+    booking.paidInOffice = true;
+    return this.bookingRepo.save(booking);
+  }
+
   async updateStatus(bookingId: string, status: string, denialReason?: string) {
     const booking = await this.findById(bookingId);
     const allowed = ['confirmed', 'cancelled', 'denied', 'quote', 'pending_payment'];
@@ -219,22 +227,12 @@ export class BookingsService {
     if (status === 'confirmed') {
       const total = Number(booking.totalAmount);
       const applied = Number(booking.walletApplied);
-      const remaining = total - applied;
-      if (remaining > 0) {
-        const { balance } = await this.walletService.getBalance(booking.customerId);
-        const toDeduct = Math.min(balance, remaining);
-        if (toDeduct > 0) {
-          await this.walletLedgerRepo.save(
-            this.walletLedgerRepo.create({
-              customerId: booking.customerId,
-              amount: -toDeduct,
-              currency: booking.currency,
-              source: 'booking',
-              reference: bookingId,
-            }),
-          );
-          booking.walletApplied = applied + toDeduct;
-        }
+      const paidInOffice = !!booking.paidInOffice;
+      const isFullyPaid = applied >= total || paidInOffice;
+      if (!isFullyPaid) {
+        throw new BadRequestException(
+          'Mark payment first: customer must pay with wallet (My Trips) or click "Paid in office" before confirming.',
+        );
       }
     }
     booking.status = status;

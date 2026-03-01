@@ -23,6 +23,8 @@ type Booking = {
   totalAmount: number
   currency: string
   walletApplied: number
+  paymentMethod?: string | null
+  paidInOffice?: boolean
   checkInAt: string | null
   checkOutAt: string | null
   roomType: string | null
@@ -81,10 +83,29 @@ export default function AdminReservations() {
     }
   }, [tab, allBookings, bookingTypeForTab])
 
-  const pendingCount = allBookings.filter((b) => b.status === 'pending_confirmation').length
-  const tabPendingCount = bookings.filter((b) => b.status === 'pending_confirmation').length
+  const pendingCount = allBookings.filter((b) => b.status === 'pending_confirmation' || b.status === 'pending_payment').length
+  const tabPendingCount = bookings.filter((b) => b.status === 'pending_confirmation' || b.status === 'pending_payment').length
 
   const selected = selectedId ? bookings.find((b) => b.id === selectedId) : null
+
+  function isPaid(b: Booking) {
+    const total = Number(b.totalAmount)
+    const applied = Number(b.walletApplied)
+    return applied >= total || !!b.paidInOffice
+  }
+
+  async function markPaidInOffice(bookingId: string) {
+    setUpdatingId(bookingId)
+    setError('')
+    try {
+      await api(`/bookings/${bookingId}/paid-in-office`, { method: 'POST' })
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed')
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   async function updateStatus(bookingId: string, status: string, reason?: string) {
     setUpdatingId(bookingId)
@@ -172,6 +193,7 @@ export default function AdminReservations() {
                     <th className="pb-2 pr-4">Client</th>
                     <th className="pb-2 pr-4">Dates</th>
                     <th className="pb-2 pr-4">Total</th>
+                    <th className="pb-2 pr-4">Payment</th>
                     <th className="pb-2 pr-4">Status</th>
                     <th className="pb-2">Action</th>
                   </tr>
@@ -179,59 +201,85 @@ export default function AdminReservations() {
                 <tbody>
                   {bookings.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-4 text-[rgba(11,27,58,0.6)]">
+                      <td colSpan={7} className="py-4 text-[rgba(11,27,58,0.6)]">
                         No reservations in this tab.
                       </td>
                     </tr>
                   ) : (
-                    bookings.map((b) => (
-                      <tr
-                        key={b.id}
-                        className={`border-t border-white/40 cursor-pointer ${selectedId === b.id ? 'bg-[rgba(47,125,255,0.08)]' : 'hover:bg-white/5'}`}
-                        onClick={() => setSelectedId(selectedId === b.id ? null : b.id)}
-                      >
-                        <td className="py-2 pr-4 font-medium">{displayName(b)}</td>
-                        <td className="py-2 pr-4">{b.customer?.name ?? b.customerId}</td>
-                        <td className="py-2 pr-4">{displayDates(b)}</td>
-                        <td className="py-2 pr-4">
-                          {b.currency} {Number(b.totalAmount).toFixed(2)}
-                        </td>
-                        <td className="py-2 pr-4">
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              b.status === 'confirmed'
-                                ? 'bg-emerald-50/80 text-emerald-700'
-                                : b.status === 'cancelled' || b.status === 'denied'
-                                  ? 'bg-slate-100 text-slate-600'
-                                  : 'bg-amber-50/80 text-amber-700'
-                            }`}
-                          >
-                            {b.status === 'pending_confirmation' ? 'Awaiting confirmation' : b.status}
-                          </span>
-                        </td>
-                        <td className="py-2">
-                          {b.status === 'pending_confirmation' && (
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                type="button"
-                                onClick={() => updateStatus(b.id, 'confirmed')}
-                                disabled={updatingId === b.id}
-                                className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 disabled:opacity-50"
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedId(b.id)}
-                                className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700"
-                              >
-                                Deny / Cancel
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    bookings.map((b) => {
+                      const paid = isPaid(b)
+                      const paymentStatus =
+                        paid && b.paidInOffice
+                          ? 'Paid in office'
+                          : Number(b.walletApplied) >= Number(b.totalAmount)
+                            ? 'Wallet'
+                            : b.paymentMethod === 'pay_later'
+                              ? 'Pay later'
+                              : 'Pending'
+                      const canConfirm = (b.status === 'pending_confirmation' || b.status === 'pending_payment') && paid
+                      return (
+                        <tr
+                          key={b.id}
+                          className={`border-t border-white/40 cursor-pointer ${selectedId === b.id ? 'bg-[rgba(47,125,255,0.08)]' : 'hover:bg-white/5'}`}
+                          onClick={() => setSelectedId(selectedId === b.id ? null : b.id)}
+                        >
+                          <td className="py-2 pr-4 font-medium">{displayName(b)}</td>
+                          <td className="py-2 pr-4">{b.customer?.name ?? b.customerId}</td>
+                          <td className="py-2 pr-4">{displayDates(b)}</td>
+                          <td className="py-2 pr-4">
+                            {b.currency} {Number(b.totalAmount).toFixed(2)}
+                          </td>
+                          <td className="py-2 pr-4 text-[11px]">{paymentStatus}</td>
+                          <td className="py-2 pr-4">
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                b.status === 'confirmed'
+                                  ? 'bg-emerald-50/80 text-emerald-700'
+                                  : b.status === 'cancelled' || b.status === 'denied'
+                                    ? 'bg-slate-100 text-slate-600'
+                                    : b.status === 'pending_payment'
+                                      ? 'bg-amber-50/80 text-amber-700'
+                                      : 'bg-amber-50/80 text-amber-700'
+                              }`}
+                            >
+                              {b.status === 'pending_confirmation' ? 'Awaiting confirmation' : b.status === 'pending_payment' ? 'Pending payment' : b.status}
+                            </span>
+                          </td>
+                          <td className="py-2">
+                            {(b.status === 'pending_confirmation' || b.status === 'pending_payment') && (
+                              <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+                                {!paid && b.paymentMethod === 'pay_later' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => markPaidInOffice(b.id)}
+                                    disabled={updatingId === b.id}
+                                    className="px-2 py-0.5 rounded text-[10px] font-medium bg-sky-100 text-sky-800 disabled:opacity-50"
+                                  >
+                                    Paid in office
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => updateStatus(b.id, 'confirmed')}
+                                  disabled={updatingId === b.id || !canConfirm}
+                                  title={!canConfirm ? 'Mark payment first (wallet or Paid in office)' : ''}
+                                  className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 disabled:opacity-50"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedId(b.id)}
+                                  className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700"
+                                >
+                                  Deny / Cancel
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
               </table>
@@ -255,6 +303,10 @@ export default function AdminReservations() {
               <dd>
                 {selected.currency} {Number(selected.totalAmount).toFixed(2)}
               </dd>
+              <dt className="text-[rgba(11,27,58,0.5)]">Payment</dt>
+              <dd>
+                {selected.paidInOffice ? 'Paid in office' : Number(selected.walletApplied) >= Number(selected.totalAmount) ? 'Wallet' : selected.paymentMethod === 'pay_later' ? 'Pay later' : 'Pending'}
+              </dd>
               <dt className="text-[rgba(11,27,58,0.5)]">Status</dt>
               <dd>{selected.status}</dd>
               {selected.hotel && (
@@ -270,8 +322,18 @@ export default function AdminReservations() {
                 </>
               )}
             </dl>
-            {selected.status === 'pending_confirmation' && (
+            {(selected.status === 'pending_confirmation' || selected.status === 'pending_payment') && (
               <div className="mt-4 pt-4 border-t border-white/30">
+                {!isPaid(selected) && selected.paymentMethod === 'pay_later' && (
+                  <button
+                    type="button"
+                    onClick={() => markPaidInOffice(selected.id)}
+                    disabled={updatingId === selected.id}
+                    className="rounded-xl px-4 py-2 font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-50 mr-2 mb-2"
+                  >
+                    Paid in office
+                  </button>
+                )}
                 <label className="block text-[11px] font-medium text-[rgba(11,27,58,0.6)] mb-1">Reason (for Deny/Cancel)</label>
                 <input
                   value={denyReason}
@@ -279,11 +341,12 @@ export default function AdminReservations() {
                   placeholder="Optional"
                   className="w-full max-w-md rounded-xl border border-white/40 bg-white/50 px-3 py-2 text-[13px] text-[rgba(11,27,58,0.9)] mb-3"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => updateStatus(selected.id, 'confirmed')}
-                    disabled={updatingId === selected.id}
+                    disabled={updatingId === selected.id || !isPaid(selected)}
+                    title={!isPaid(selected) ? 'Mark payment first (wallet or Paid in office)' : ''}
                     className="rounded-xl px-4 py-2 font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
                   >
                     Confirm

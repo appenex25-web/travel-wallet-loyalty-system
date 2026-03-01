@@ -107,6 +107,7 @@ API base: `http://localhost:3000` (set `VITE_API_URL` in the web app to match; s
 - `POST /bookings/from-catalog` – Create booking from catalog (customer; body: hotelId? | flightId?, **paymentMethod** `pay_now_wallet` | `pay_later`, numberOfPeople?, **pin** only if paymentMethod is pay_now_wallet, checkInAt?, checkOutAt?, roomType?). Pay later: 48h to pay in person; pay now: deduct from wallet (PIN required).
 - `POST /bookings/from-campaign` – Create booking from trip campaign (customer; body: campaignId, **paymentMethod**, numberOfPeople?, addOnIds?, **pin** only if pay_now_wallet). Same payment options as from-catalog.
 - `GET /bookings/customer/me` – My bookings (customer)
+- `POST /bookings/:id/paid-in-office` – Mark booking as paid in office (agent/admin); enables Confirm for pay_later. Confirm is only allowed when `walletApplied >= totalAmount` or `paidInOffice` is set.
 - `GET /bookings/:id` – Get booking
 - `POST /bookings/:id/apply-wallet` – Apply wallet amount to booking (body: amount, **pin** for customer). Requires PIN for customers.
 

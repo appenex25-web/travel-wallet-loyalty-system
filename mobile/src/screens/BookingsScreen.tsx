@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal } from 'react-native';
+import { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 
 const BOOKING_TYPE_LABELS: Record<string, string> = {
@@ -34,21 +35,25 @@ export default function BookingsScreen() {
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const [payingBooking, setPayingBooking] = useState<Booking | null>(null);
   const [payPin, setPayPin] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   async function load() {
     try {
       const list = await api<Booking[]>('/bookings/customer/me');
-      setBookings(list);
+      setBookings(Array.isArray(list) ? list : []);
     } catch {
       setBookings([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, []),
+  );
 
   function openPayModal(booking: Booking) {
     const remaining = Number(booking.totalAmount) - Number(booking.walletApplied);
@@ -104,17 +109,26 @@ export default function BookingsScreen() {
     );
   }
 
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+  }
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 12) }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 12) }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2F7DFF" />}
+    >
       <Text style={styles.title}>My trips & bookings</Text>
       {bookings.length === 0 ? (
         <Text style={styles.muted}>No bookings yet</Text>
       ) : (
         bookings.map((b) => {
           const remaining = Number(b.totalAmount) - Number(b.walletApplied);
-          const canPay = (b.status === 'quote' || b.status === 'pending_payment') && remaining > 0;
+          const canPay = (b.status === 'quote' || b.status === 'pending_payment' || b.status === 'pending_confirmation') && remaining > 0;
           const typeLabel = BOOKING_TYPE_LABELS[b.bookingType || ''] || 'Booking';
-          const statusLabel = BOOKING_TYPE_LABELS[b.status] || b.status;
+          const statusLabel = b.status === 'pending_confirmation' ? 'Awaiting confirmation' : (BOOKING_TYPE_LABELS[b.status] || b.status);
           const subtitle = b.title ? `${typeLabel} · ${b.title}` : typeLabel;
           return (
             <View key={b.id} style={styles.card}>

@@ -154,6 +154,13 @@ export class BookingsController {
     return this.bookingsService.updateStatus(id, body.status, body.denialReason);
   }
 
+  @Post(':id/paid-in-office')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('agent', 'admin', 'super_admin')
+  async markPaidInOffice(@Param('id') id: string) {
+    return this.bookingsService.markPaidInOffice(id);
+  }
+
   @Post(':id/apply-wallet')
   @UseGuards(JwtAuthGuard)
   @Roles('customer', 'agent', 'admin', 'super_admin')
