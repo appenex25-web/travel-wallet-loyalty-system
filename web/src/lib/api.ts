@@ -1,4 +1,18 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+let API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+
+/** Load optional runtime config (e.g. when app is served from tray's local server for NFC linking). */
+export async function loadRuntimeConfig(): Promise<void> {
+  try {
+    const res = await fetch('/config.json')
+    if (!res.ok) return
+    const data = (await res.json()) as { apiUrl?: string }
+    if (data.apiUrl && typeof data.apiUrl === 'string') {
+      API_BASE = data.apiUrl.replace(/\/$/, '')
+    }
+  } catch {
+    // No config.json or not same-origin – keep build-time default
+  }
+}
 
 export function getApiBase(): string {
   return API_BASE

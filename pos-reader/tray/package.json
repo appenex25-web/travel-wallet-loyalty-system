@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win",
-    "pack": "electron-builder --win dir"
+    "pack": "node copy-web.js && electron-builder --win dir"
   },
   "build": {
     "appId": "com.travelwallet.posreader",
@@ -16,7 +16,7 @@
     "win": {
       "target": "dir"
     },
-    "extraResources": []
+    "extraResources": [{"from": "resources/web-dist", "to": "web-dist"}]
   },
   "dependencies": {
     "express": "^4.21.0"

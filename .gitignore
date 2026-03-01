@@ -10,6 +10,7 @@ backend/uploads/
 web-dist/
 pos-reader/installer/output/
 pos-reader/tray/dist/
+pos-reader/tray/resources/
 deploy.tar
 deploy.env
 *.tar

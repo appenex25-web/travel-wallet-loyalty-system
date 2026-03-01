@@ -1,9 +1,35 @@
-const { app, Tray, Menu, nativeImage, shell } = require('electron');
+const { app, Tray, Menu, nativeImage, shell, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 
 const PORT = Number(process.env.POS_READER_PORT) || 31337;
 const READER_URL = `http://localhost:${PORT}`;
+const LOCAL_ADMIN_PORT = 4780;
+const LOCAL_ADMIN_URL = `http://localhost:${LOCAL_ADMIN_PORT}`;
+
+function getServerUrlPath() {
+  return path.join(app.getPath('userData'), 'server-url.txt');
+}
+function getServerUrl() {
+  try {
+    const p = getServerUrlPath();
+    if (fs.existsSync(p)) return fs.readFileSync(p, 'utf8').trim() || null;
+  } catch (e) {}
+  return null;
+}
+function setServerUrl(url) {
+  const p = getServerUrlPath();
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, url.trim(), 'utf8');
+}
+
+function getWebDistPath() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'web-dist');
+  }
+  return path.join(__dirname, '..', '..', 'web', 'dist');
+}
 
 // --- Express server (same API as pos-reader server.js) ---
 let lastUid = null;
@@ -56,6 +82,7 @@ function tryStartNfcReader() {
 
 let tray = null;
 let server = null;
+let localAdminServer = null;
 
 // Minimal 16x16 PNG (single dark teal pixel) for tray when no icon file present
 const FALLBACK_ICON = Buffer.from(
@@ -72,6 +99,66 @@ function getTrayIcon() {
     if (!img.isEmpty()) return img.resize({ width: 16, height: 16 });
   }
   return nativeImage.createFromBuffer(FALLBACK_ICON).resize({ width: 16, height: 16 });
+}
+
+function startLocalAdminServer() {
+  if (localAdminServer) return true;
+  const webDist = getWebDistPath();
+  if (!fs.existsSync(webDist) || !fs.existsSync(path.join(webDist, 'index.html'))) {
+    return false;
+  }
+  const adminApp = express();
+  adminApp.get('/config.json', (req, res) => {
+    const url = getServerUrl();
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json({ apiUrl: url || 'http://localhost:3000' });
+  });
+  adminApp.use(express.static(webDist, { index: 'index.html' }));
+  adminApp.get('*', (req, res) => {
+    res.sendFile(path.join(webDist, 'index.html'));
+  });
+  try {
+    localAdminServer = adminApp.listen(LOCAL_ADMIN_PORT, '127.0.0.1');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function showServerUrlDialog(onSaved) {
+  const configWin = new BrowserWindow({
+    width: 420,
+    height: 240,
+    title: 'Travel Wallet — Server URL',
+    webPreferences: { nodeIntegration: true, contextIsolation: false },
+  });
+  configWin.setMenu(null);
+  configWin.loadFile(path.join(__dirname, 'config-window.html'), {
+    query: { current: getServerUrl() || '' },
+  });
+  ipcMain.once('server-url', (_, savedUrl) => {
+    setServerUrl(savedUrl);
+    configWin.close();
+    if (onSaved) onSaved();
+  });
+}
+
+function openAdminForNfcLinking() {
+  const url = getServerUrl();
+  if (!url) {
+    showServerUrlDialog(startLocalAdminAndOpen);
+    return;
+  }
+  startLocalAdminAndOpen();
+}
+
+function startLocalAdminAndOpen() {
+  if (!startLocalAdminServer()) {
+    const url = getServerUrl();
+    if (url) shell.openExternal(url.replace(/\/$/, '').replace(/:3000$/, ''));
+    return;
+  }
+  shell.openExternal(LOCAL_ADMIN_URL);
 }
 
 function createTray() {
@@ -99,6 +186,18 @@ function updateMenu() {
       label: 'Open reader URL',
       click() {
         shell.openExternal(READER_URL);
+      },
+    },
+    {
+      label: 'Open admin for NFC linking',
+      click() {
+        openAdminForNfcLinking();
+      },
+    },
+    {
+      label: 'Set server URL…',
+      click() {
+        showServerUrlDialog(null);
       },
     },
     {
@@ -136,4 +235,5 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {});
 app.on('before-quit', () => {
   if (server) server.close();
+  if (localAdminServer) localAdminServer.close();
 });

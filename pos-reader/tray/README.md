@@ -5,6 +5,7 @@ Runs the NFC reader helper as a Windows app that sits in the system tray (notifi
 - **Minimised to tray** – runs in the background; right‑click the tray icon for options.
 - **Start when Windows starts** – tick “Start when Windows starts” in the tray menu (or choose it during installation).
 - **Same API** – serves `http://localhost:31337/uid` (and `/uid/clear`, POST `/uid`) like the Node.js `server.js`.
+- **Open admin for NFC linking** – tray menu opens the admin from this PC (localhost) so the browser can reach the reader. Enter your server API URL once (e.g. `http://YOUR_SERVER_IP:3000`). Scan card then works.
 
 ## Build the installer
 
