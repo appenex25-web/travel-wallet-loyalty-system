@@ -24,6 +24,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useStaticAssets(uploadsPath, { prefix: '/uploads/' });
   const explicitOrigins = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
+  const apiBaseOrigin = process.env.API_BASE_URL ? (() => {
+    try {
+      return new URL(process.env.API_BASE_URL).origin;
+    } catch {
+      return null;
+    }
+  })() : null;
   const origin = (originUrl: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!originUrl) return callback(null, true);
     try {
@@ -39,6 +46,7 @@ async function bootstrap() {
         });
         if (inList) return callback(null, true);
       }
+      if (apiBaseOrigin && u.origin === apiBaseOrigin) return callback(null, true);
       if (u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || isPrivateOrLocalHost(u.hostname))) {
         return callback(null, true);
       }
