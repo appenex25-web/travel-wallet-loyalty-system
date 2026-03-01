@@ -4,6 +4,8 @@ const express = require('express');
 
 const PORT = Number(process.env.POS_READER_PORT) || 31337;
 const READER_URL = `http://localhost:${PORT}`;
+// One link: use this in the browser; allow "Local network access" in Chrome so Scan card works
+const APP_URL = process.env.TRAVEL_WALLET_APP_URL || 'https://www.appenex.org';
 
 // --- Reader API (same as pos-reader server.js) ---
 let lastUid = null;
@@ -74,11 +76,17 @@ function getTrayIcon() {
 
 function createTray() {
   tray = new Tray(getTrayIcon());
-  tray.setToolTip('Travel Wallet NFC Reader – ' + READER_URL);
+  tray.setToolTip('Travel Wallet NFC Reader – use with ' + APP_URL);
   const startAtLogin = app.getLoginItemSettings().openAtLogin;
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Travel Wallet NFC Reader', enabled: false },
     { type: 'separator' },
+    {
+      label: 'Open Travel Wallet',
+      click() {
+        shell.openExternal(APP_URL);
+      },
+    },
     {
       label: 'Start when Windows starts',
       type: 'checkbox',
@@ -89,7 +97,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: 'Open reader URL',
+      label: 'Test reader (localhost)',
       click() {
         shell.openExternal(READER_URL);
       },
