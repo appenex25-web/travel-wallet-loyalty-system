@@ -104,8 +104,8 @@ API base: `http://localhost:3000` (set `VITE_API_URL` in the web app to match; s
 ### Bookings
 - `GET /bookings?customerId=&bookingType=` – List bookings (agent/admin; optional customerId and bookingType: hotel, flight, trip_package, other)
 - `POST /bookings` – Create booking (admin; body: customerId, totalAmount, currency?, bookingType?, title?, hotelId?, flightId?, campaignId?, externalReference?)
-- `POST /bookings/from-catalog` – Create booking from catalog (customer; body: hotelId? | flightId?, **pin**, checkInAt?, checkOutAt?, roomType?). For hotel: roomType applies price delta from hotel.roomTypes; dates stored on booking. Requires 6-digit PIN.
-- `POST /bookings/from-campaign` – Create booking from trip campaign (customer; body: campaignId, startDate?, endDate?, addOnIds?, **pin**). Requires 6-digit PIN.
+- `POST /bookings/from-catalog` – Create booking from catalog (customer; body: hotelId? | flightId?, **paymentMethod** `pay_now_wallet` | `pay_later`, numberOfPeople?, **pin** only if paymentMethod is pay_now_wallet, checkInAt?, checkOutAt?, roomType?). Pay later: 48h to pay in person; pay now: deduct from wallet (PIN required).
+- `POST /bookings/from-campaign` – Create booking from trip campaign (customer; body: campaignId, **paymentMethod**, numberOfPeople?, addOnIds?, **pin** only if pay_now_wallet). Same payment options as from-catalog.
 - `GET /bookings/customer/me` – My bookings (customer)
 - `GET /bookings/:id` – Get booking
 - `POST /bookings/:id/apply-wallet` – Apply wallet amount to booking (body: amount, **pin** for customer). Requires PIN for customers.

@@ -47,22 +47,34 @@ export class BookingsController {
     @Body() body: {
       hotelId?: string;
       flightId?: string;
-      pin: string;
+      paymentMethod: 'pay_now_wallet' | 'pay_later';
+      numberOfPeople?: number;
+      pin?: string;
       checkInAt?: string;
       checkOutAt?: string;
       roomType?: string;
     },
   ) {
     const customer = await this.customersService.findByUserId(user.id);
-    const hasPin = await this.customersService.hasPin(customer.id);
-    if (!hasPin) throw new (await import('@nestjs/common')).BadRequestException('Set your 6-digit security PIN in Account settings first');
-    const ok = await this.customersService.verifyPin(customer.id, body.pin);
-    if (!ok) throw new (await import('@nestjs/common')).UnauthorizedException('Invalid PIN');
-    return this.bookingsService.createFromCatalog(customer.id, body.hotelId, body.flightId, {
+    if (body.paymentMethod === 'pay_now_wallet') {
+      const hasPin = await this.customersService.hasPin(customer.id);
+      if (!hasPin) throw new (await import('@nestjs/common')).BadRequestException('Set your 6-digit security PIN in Account settings first');
+      if (!body.pin) throw new (await import('@nestjs/common')).BadRequestException('PIN required when paying with wallet');
+      const ok = await this.customersService.verifyPin(customer.id, body.pin);
+      if (!ok) throw new (await import('@nestjs/common')).UnauthorizedException('Invalid PIN');
+    }
+    const booking = await this.bookingsService.createFromCatalog(customer.id, body.hotelId, body.flightId, {
       checkInAt: body.checkInAt,
       checkOutAt: body.checkOutAt,
       roomType: body.roomType,
+      paymentMethod: body.paymentMethod,
+      numberOfPeople: body.numberOfPeople,
     });
+    if (body.paymentMethod === 'pay_now_wallet') {
+      const toApply = Number(booking.totalAmount);
+      if (toApply > 0) await this.bookingsService.applyWallet(booking.id, toApply);
+    }
+    return booking;
   }
 
   @Post('from-campaign')
@@ -70,18 +82,36 @@ export class BookingsController {
   @Roles('customer')
   async createFromCampaign(
     @CurrentUser() user: User,
-    @Body() body: { campaignId: string; startDate?: string; endDate?: string; addOnIds?: string[]; pin: string },
+    @Body() body: {
+      campaignId: string;
+      startDate?: string;
+      endDate?: string;
+      addOnIds?: string[];
+      paymentMethod: 'pay_now_wallet' | 'pay_later';
+      numberOfPeople?: number;
+      pin?: string;
+    },
   ) {
     const customer = await this.customersService.findByUserId(user.id);
-    const hasPin = await this.customersService.hasPin(customer.id);
-    if (!hasPin) throw new (await import('@nestjs/common')).BadRequestException('Set your 6-digit security PIN in Account settings first');
-    const ok = await this.customersService.verifyPin(customer.id, body.pin);
-    if (!ok) throw new (await import('@nestjs/common')).UnauthorizedException('Invalid PIN');
-    return this.bookingsService.createFromCampaign(customer.id, body.campaignId, {
+    if (body.paymentMethod === 'pay_now_wallet') {
+      const hasPin = await this.customersService.hasPin(customer.id);
+      if (!hasPin) throw new (await import('@nestjs/common')).BadRequestException('Set your 6-digit security PIN in Account settings first');
+      if (!body.pin) throw new (await import('@nestjs/common')).BadRequestException('PIN required when paying with wallet');
+      const ok = await this.customersService.verifyPin(customer.id, body.pin);
+      if (!ok) throw new (await import('@nestjs/common')).UnauthorizedException('Invalid PIN');
+    }
+    const booking = await this.bookingsService.createFromCampaign(customer.id, body.campaignId, {
       startDate: body.startDate,
       endDate: body.endDate,
       addOnIds: body.addOnIds,
+      paymentMethod: body.paymentMethod,
+      numberOfPeople: body.numberOfPeople,
     });
+    if (body.paymentMethod === 'pay_now_wallet') {
+      const toApply = Number(booking.totalAmount);
+      if (toApply > 0) await this.bookingsService.applyWallet(booking.id, toApply);
+    }
+    return booking;
   }
 
   @Get()

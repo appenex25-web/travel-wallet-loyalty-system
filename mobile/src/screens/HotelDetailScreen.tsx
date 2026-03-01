@@ -67,7 +67,9 @@ export default function HotelDetailScreen() {
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false);
+  const [showBookModal, setShowBookModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'pay_now_wallet' | 'pay_later' | null>(null);
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [pin, setPin] = useState('');
   const [selectedRoomIndex, setSelectedRoomIndex] = useState<number>(0);
   const [checkIn, setCheckIn] = useState('');
@@ -82,17 +84,19 @@ export default function HotelDetailScreen() {
   }, [hotelId]);
 
   async function handleBook() {
-    if (!hotel) return;
-    if (!/^\d{6}$/.test(pin)) {
+    if (!hotel || !paymentMethod) return;
+    if (paymentMethod === 'pay_now_wallet' && !/^\d{6}$/.test(pin)) {
       Alert.alert('Invalid PIN', 'Enter your 6-digit security PIN.');
       return;
     }
     setBooking(true);
     try {
-      const body: { hotelId: string; pin: string; checkInAt?: string; checkOutAt?: string; roomType?: string } = {
+      const body: Record<string, unknown> = {
         hotelId: hotel.id,
-        pin: pin.trim(),
+        paymentMethod,
+        numberOfPeople: Math.max(1, Math.min(20, numberOfPeople)),
       };
+      if (paymentMethod === 'pay_now_wallet') body.pin = pin.trim();
       if (checkIn.trim()) body.checkInAt = checkIn.trim();
       if (checkOut.trim()) body.checkOutAt = checkOut.trim();
       const roomTypes = hotel.roomTypes && hotel.roomTypes.length > 0 ? hotel.roomTypes : [];
@@ -102,15 +106,24 @@ export default function HotelDetailScreen() {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      setShowPinModal(false);
+      setShowBookModal(false);
+      setPaymentMethod(null);
+      setNumberOfPeople(1);
       setPin('');
-      Alert.alert('Booked', 'Reservation requested. Check My Trips for status.');
+      Alert.alert('Booked', paymentMethod === 'pay_later' ? 'Reservation created. Pay in person within 48 hours. Check My Trips and Messages.' : 'Reservation created. Check My Trips and Messages for confirmation.');
       (navigation as any).goBack();
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Booking failed');
     } finally {
       setBooking(false);
     }
+  }
+
+  function closeBookModal() {
+    setShowBookModal(false);
+    setPaymentMethod(null);
+    setNumberOfPeople(1);
+    setPin('');
   }
 
   if (loading || !hotel) {
@@ -235,35 +248,69 @@ export default function HotelDetailScreen() {
       </View>
       <TouchableOpacity
         style={styles.bookButton}
-        onPress={() => setShowPinModal(true)}
+        onPress={() => setShowBookModal(true)}
         disabled={booking}
       >
-        <Text style={styles.bookButtonText}>Booking</Text>
+        <Text style={styles.bookButtonText}>Book</Text>
       </TouchableOpacity>
 
-      <Modal visible={showPinModal} transparent animationType="fade" onRequestClose={() => setShowPinModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowPinModal(false)}>
+      <Modal visible={showBookModal} transparent animationType="fade" onRequestClose={closeBookModal}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeBookModal}>
           <TouchableOpacity style={styles.modalBox} activeOpacity={1} onPress={() => {}}>
-            <Text style={styles.modalTitle}>Enter 6-digit security PIN</Text>
-            <TextInput
-              style={styles.pinInput}
-              value={pin}
-              onChangeText={setPin}
-              placeholder="••••••"
-              placeholderTextColor="#94a3b8"
-              keyboardType="number-pad"
-              maxLength={6}
-              secureTextEntry
-              autoFocus
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalCancel} onPress={() => { setShowPinModal(false); setPin(''); }}>
+            {!paymentMethod ? (
+              <>
+                <Text style={styles.modalTitle}>How do you want to pay?</Text>
+                <TouchableOpacity style={styles.payOption} onPress={() => setPaymentMethod('pay_now_wallet')}>
+                  <Text style={styles.payOptionTitle}>Pay now (use wallet)</Text>
+                  <Text style={styles.payOptionDesc}>Deduct from your wallet. You will enter your PIN next.</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.payOption} onPress={() => setPaymentMethod('pay_later')}>
+                  <Text style={styles.payOptionTitle}>Pay later</Text>
+                  <Text style={styles.payOptionDesc}>Pay in person within 48 hours.</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Number of people</Text>
+                <View style={styles.peopleRow}>
+                  <TouchableOpacity style={styles.stepper} onPress={() => setNumberOfPeople((n) => Math.max(1, n - 1))}>
+                    <Text style={styles.stepperText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.peopleValue}>{numberOfPeople}</Text>
+                  <TouchableOpacity style={styles.stepper} onPress={() => setNumberOfPeople((n) => Math.min(20, n + 1))}>
+                    <Text style={styles.stepperText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                {paymentMethod === 'pay_now_wallet' && (
+                  <>
+                    <Text style={styles.modalLabel}>Enter 6-digit PIN</Text>
+                    <TextInput
+                      style={styles.pinInput}
+                      value={pin}
+                      onChangeText={setPin}
+                      placeholder="••••••"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      secureTextEntry
+                    />
+                  </>
+                )}
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={styles.modalCancel} onPress={() => setPaymentMethod(null)}>
+                    <Text style={styles.modalCancelText}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalBook} onPress={handleBook} disabled={booking}>
+                    <Text style={styles.bookButtonText}>{booking ? 'Booking…' : 'Book'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+            {paymentMethod && (
+              <TouchableOpacity style={styles.modalCancelOnly} onPress={closeBookModal}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalBook} onPress={handleBook} disabled={booking}>
-                <Text style={styles.bookButtonText}>{booking ? 'Booking…' : 'Book'}</Text>
-              </TouchableOpacity>
-            </View>
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -341,4 +388,13 @@ const styles = StyleSheet.create({
   modalCancel: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   modalCancelText: { color: '#64748b', fontWeight: '600' },
   modalBook: { backgroundColor: '#2F7DFF', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12 },
+  payOption: { backgroundColor: 'rgba(47, 125, 255, 0.08)', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(47, 125, 255, 0.2)' },
+  payOptionTitle: { fontWeight: '700', color: '#0f172a', fontSize: 15 },
+  payOptionDesc: { color: '#64748b', fontSize: 12, marginTop: 4 },
+  peopleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 16 },
+  stepper: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e2e8f0', justifyContent: 'center', alignItems: 'center' },
+  stepperText: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
+  peopleValue: { fontSize: 18, fontWeight: '700', color: '#0f172a', minWidth: 24, textAlign: 'center' },
+  modalLabel: { fontSize: 14, fontWeight: '600', color: '#0f172a', marginBottom: 8 },
+  modalCancelOnly: { marginTop: 12, alignSelf: 'center' },
 });

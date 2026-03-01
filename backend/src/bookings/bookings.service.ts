@@ -36,14 +36,19 @@ export class BookingsService {
       hotelId?: string;
       flightId?: string;
       campaignId?: string;
+      paymentMethod?: string;
+      payByAt?: Date;
+      numberOfPeople?: number;
     },
   ) {
     await this.customersService.findById(customerId);
+    const isPayLater = options?.paymentMethod === 'pay_later';
+    const status = isPayLater ? 'pending_payment' : 'pending_confirmation';
     const booking = this.bookingRepo.create({
       customerId,
       totalAmount,
       currency,
-      status: 'pending_confirmation',
+      status,
       walletApplied: 0,
       externalReference: options?.externalReference ?? undefined,
       bookingType: options?.bookingType ?? 'other',
@@ -51,9 +56,15 @@ export class BookingsService {
       hotelId: options?.hotelId ?? null,
       flightId: options?.flightId ?? null,
       campaignId: options?.campaignId ?? null,
+      paymentMethod: options?.paymentMethod ?? null,
+      payByAt: options?.payByAt ?? null,
+      numberOfPeople: options?.numberOfPeople ?? null,
     });
     const saved = await this.bookingRepo.save(booking);
-    this.messagesService.createBookingNotification(customerId, saved.id, `Your booking "${saved.title || 'Booking'}" has been created.`).catch(() => {});
+    const msg = isPayLater
+      ? `Your booking "${saved.title || 'Booking'}" has been created. Pay in person within 48 hours.`
+      : `Your booking "${saved.title || 'Booking'}" has been created.`;
+    this.messagesService.createBookingNotification(customerId, saved.id, msg).catch(() => {});
     return saved;
   }
 
@@ -61,7 +72,7 @@ export class BookingsService {
   async createFromCampaign(
     customerId: string,
     campaignId: string,
-    options: { startDate?: string; endDate?: string; addOnIds?: string[] },
+    options: { startDate?: string; endDate?: string; addOnIds?: string[]; paymentMethod?: string; numberOfPeople?: number },
   ) {
     await this.customersService.findById(customerId);
     const campaign = await this.campaignsService.findById(campaignId);
@@ -73,10 +84,14 @@ export class BookingsService {
       for (const a of addOns) total += Number(a.priceDelta);
     }
     const title = campaign.title + (campaign.shortDescription ? ` · ${campaign.shortDescription}` : '');
+    const payByAt = options.paymentMethod === 'pay_later' ? new Date(Date.now() + 48 * 60 * 60 * 1000) : undefined;
     return this.create(customerId, total, currency, {
       bookingType: 'trip_package',
       title: title.slice(0, 500),
       campaignId: campaign.id,
+      paymentMethod: options.paymentMethod ?? undefined,
+      payByAt,
+      numberOfPeople: options.numberOfPeople ?? undefined,
     });
   }
 
@@ -85,7 +100,7 @@ export class BookingsService {
     customerId: string,
     hotelId?: string,
     flightId?: string,
-    options?: { checkInAt?: string; checkOutAt?: string; roomType?: string },
+    options?: { checkInAt?: string; checkOutAt?: string; roomType?: string; paymentMethod?: string; numberOfPeople?: number },
   ) {
     await this.customersService.findById(customerId);
     if (hotelId && flightId) throw new BadRequestException('Provide either hotelId or flightId, not both');
@@ -109,10 +124,14 @@ export class BookingsService {
         const nights = Math.max(1, Math.ceil((checkOut.getTime() - checkIn.getTime()) / (24 * 60 * 60 * 1000)));
         totalAmount = pricePerNight * nights;
       }
+      const payByAt = options?.paymentMethod === 'pay_later' ? new Date(Date.now() + 48 * 60 * 60 * 1000) : undefined;
       const booking = await this.create(customerId, totalAmount, hotel.currency || 'USD', {
         bookingType: 'hotel',
         title: hotel.name,
         hotelId: hotel.id,
+        paymentMethod: options?.paymentMethod,
+        payByAt,
+        numberOfPeople: options?.numberOfPeople,
       });
       const updatePayload: Record<string, unknown> = {};
       if (options?.checkInAt) updatePayload.checkInAt = new Date(options.checkInAt);
@@ -126,10 +145,14 @@ export class BookingsService {
     } else {
       const flight = await this.flightsService.findById(flightId!);
       const totalAmount = Number(flight.price);
+      const payByAt = options?.paymentMethod === 'pay_later' ? new Date(Date.now() + 48 * 60 * 60 * 1000) : undefined;
       return this.create(customerId, totalAmount, flight.currency || 'USD', {
         bookingType: 'flight',
         title: `${flight.origin} → ${flight.destination}`,
         flightId: flight.id,
+        paymentMethod: options?.paymentMethod,
+        payByAt,
+        numberOfPeople: options?.numberOfPeople,
       });
     }
   }
@@ -218,14 +241,17 @@ export class BookingsService {
     if (status === 'denied' || status === 'cancelled') booking.denialReason = denialReason ?? null;
     else booking.denialReason = null;
     const saved = await this.bookingRepo.save(booking);
-    const thread = await this.messagesService.findThreadByBookingId(bookingId).catch(() => null);
-    if (thread) {
-      if (status === 'confirmed') {
-        await this.messagesService.addMessage(thread.id, 'support', `Your reservation "${booking.title || 'Booking'}" has been confirmed.`, undefined);
-      } else if (status === 'cancelled' || status === 'denied') {
-        const reason = denialReason ? ` Reason: ${denialReason}` : '';
-        await this.messagesService.addMessage(thread.id, 'support', `Your reservation "${booking.title || 'Booking'}" has been ${status}.${reason}`, undefined);
+    let thread = await this.messagesService.findThreadByBookingId(bookingId).catch(() => null);
+    if (status === 'confirmed') {
+      const confirmMsg = `Your trip "${booking.title || 'Booking'}" has been confirmed.`;
+      if (thread) {
+        await this.messagesService.addMessage(thread.id, 'support', confirmMsg, undefined);
+      } else {
+        await this.messagesService.createBookingNotification(booking.customerId, bookingId, confirmMsg).catch(() => {});
       }
+    } else if (thread && (status === 'cancelled' || status === 'denied')) {
+      const reason = denialReason ? ` Reason: ${denialReason}` : '';
+      await this.messagesService.addMessage(thread.id, 'support', `Your reservation "${booking.title || 'Booking'}" has been ${status}.${reason}`, undefined);
     }
     return saved;
   }

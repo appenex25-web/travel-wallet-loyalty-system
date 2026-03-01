@@ -63,6 +63,16 @@ export class Booking {
   @Column({ type: 'varchar', length: 100, nullable: true })
   roomType: string | null;
 
+  /** pay_now_wallet = pay at booking with wallet (+ PIN); pay_later = pay in person within 48h */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  paymentMethod: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  payByAt: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  numberOfPeople: number | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
