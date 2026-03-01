@@ -95,7 +95,7 @@ export default function AdminLayout() {
         .then((list) => setUnreadMessages(Array.isArray(list) ? list.length : 0))
         .catch(() => setUnreadMessages(0))
       api<{ status: string }[]>('/bookings')
-        .then((list) => setPendingReservations(Array.isArray(list) ? list.filter((b) => b.status === 'pending_confirmation').length : 0))
+        .then((list) => setPendingReservations(Array.isArray(list) ? list.filter((b) => b.status === 'pending_confirmation' || b.status === 'pending_payment').length : 0))
         .catch(() => setPendingReservations(0))
     }
     fetchBadges()

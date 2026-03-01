@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useSearchParams } from 'react-router-dom'
 
-type TabKey = 'hotel' | 'flight' | 'transport' | 'trip_package'
+type TabKey = 'all' | 'hotel' | 'flight' | 'transport' | 'trip_package'
 import { api } from '../../lib/api'
 
 const PRIMARY = '#2F7DFF'
 
 const TABS = [
+  { key: 'all', label: 'All', icon: '📋' },
   { key: 'hotel', label: 'Hotels', icon: '🏨' },
   { key: 'flight', label: 'Flights', icon: '✈️' },
   { key: 'transport', label: 'Transport', icon: '🚌' },
@@ -46,7 +47,7 @@ function GlassSurface({ className = '', children }: { className?: string; childr
 
 export default function AdminReservations() {
   const [searchParams] = useSearchParams()
-  const tab = (searchParams.get('tab') || 'hotel') as TabKey
+  const tab = (searchParams.get('tab') || 'all') as TabKey
   const [bookings, setBookings] = useState<Booking[]>([])
   const [allBookings, setAllBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,15 +58,25 @@ export default function AdminReservations() {
 
   const bookingTypeForTab = tab === 'transport' ? 'other' : tab
 
+  useEffect(() => {
+    if (tab === 'all') {
+      setBookings(allBookings)
+    } else if (tab === 'transport') {
+      setBookings(allBookings.filter((b) => b.bookingType === 'other' || b.bookingType === 'transport'))
+    } else {
+      setBookings(allBookings.filter((b) => b.bookingType === bookingTypeForTab))
+    }
+  }, [tab, allBookings, bookingTypeForTab])
+
   async function load() {
     setLoading(true)
     setError('')
     try {
       const list = await api<Booking[]>('/bookings')
-      setAllBookings(list || [])
-    } catch {
+      setAllBookings(Array.isArray(list) ? list : [])
+    } catch (e) {
       setAllBookings([])
-      setError('Failed to load reservations')
+      setError(e instanceof Error ? e.message : 'Failed to load reservations. Make sure you’re logged in as admin.')
     } finally {
       setLoading(false)
     }
@@ -76,7 +87,9 @@ export default function AdminReservations() {
   }, [])
 
   useEffect(() => {
-    if (tab === 'transport') {
+    if (tab === 'all') {
+      setBookings(allBookings)
+    } else if (tab === 'transport') {
       setBookings(allBookings.filter((b) => b.bookingType === 'other' || b.bookingType === 'transport'))
     } else {
       setBookings(allBookings.filter((b) => b.bookingType === bookingTypeForTab))
