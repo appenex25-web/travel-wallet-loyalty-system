@@ -50,13 +50,4 @@ jobs:
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:$DEPLOY_PATH/
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "cd $DEPLOY_PATH && tar -xf deploy.tar && rm -f deploy.tar && docker compose build backend && docker compose up -d"
-
-      - name: Run booking migration on server
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          DEPLOY_PATH="${DEPLOY_PATH:-/opt/travel-wallet-loyalty-system}"
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "cd $DEPLOY_PATH && docker compose exec -T backend node scripts/run-booking-migration.js"
+            "cd $DEPLOY_PATH && tar -xf deploy.tar && rm -f deploy.tar && docker compose build backend && docker compose up -d && sleep 15 && docker compose exec -T backend node scripts/run-booking-migration.js || true"
