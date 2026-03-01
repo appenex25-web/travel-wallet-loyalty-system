@@ -208,7 +208,7 @@ export class BookingsService {
       }),
     );
     booking.walletApplied = Number(booking.walletApplied) + toApply;
-    if (Number(booking.walletApplied) >= Number(booking.totalAmount)) booking.status = 'confirmed';
+    if (Number(booking.walletApplied) >= Number(booking.totalAmount)) booking.status = 'pending_confirmation';
     else booking.status = 'pending_payment';
     return this.bookingRepo.save(booking);
   }
