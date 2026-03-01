@@ -8,6 +8,8 @@ dist/
 uploads/
 backend/uploads/
 web-dist/
+pos-reader/installer/output/
+pos-reader/tray/dist/
 deploy.tar
 deploy.env
 *.tar

@@ -191,7 +191,11 @@ export default function AdminCustomerDetail() {
             </button>
             {readerStatus === 'detected' && <span className="text-emerald-600 font-medium self-center">Card on reader — click Link card below</span>}
             {readerStatus === 'no_card' && <span className="text-[var(--travel-muted)] font-medium self-center">No card on reader</span>}
-            {readerStatus === 'unavailable' && <span className="text-amber-600 text-sm self-center">Reader helper not reachable. Start it first (see below).</span>}
+            {readerStatus === 'unavailable' && (
+              <span className="text-amber-600 text-sm self-center">
+                Reader helper not reachable. If you installed <strong>Travel Wallet NFC Reader</strong>, make sure it is <strong>running</strong> (check the system tray). Otherwise start it (see below).
+              </span>
+            )}
           </div>
           <input
             type="text"
@@ -210,7 +214,10 @@ export default function AdminCustomerDetail() {
           <button type="button" onClick={linkNfc} disabled={linking || !nfcUid.trim()} className="rounded-xl bg-[var(--travel-warm)] text-white px-4 py-2 hover:bg-[var(--travel-warm-light)] disabled:opacity-50">
             {linking ? 'Linking…' : 'Link card'}
           </button>
-          <p className="text-xs text-[var(--travel-muted)] mt-3">Card reader helper: in the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (with ACR122U connected). Then click &quot;Scan card&quot; and tap the card.</p>
+          <p className="text-xs text-[var(--travel-muted)] mt-3">
+            <strong>Installed the tray app?</strong> Launch <strong>Travel Wallet NFC Reader</strong> from the Start Menu (or check the system tray). It must be running on this PC. <a href="http://localhost:31337/uid" target="_blank" rel="noopener noreferrer" className="text-[var(--travel-deep)] underline">Test reader</a> (opens in new tab; you should see <code className="bg-[var(--travel-cream)] px-1 rounded">{`{"uid":null}`}</code>).<br />
+            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>). Then click &quot;Scan card&quot; and tap the card.
+          </p>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {customer.nfcIdentifiers && customer.nfcIdentifiers.length > 0 && (
             <div className="mt-4">

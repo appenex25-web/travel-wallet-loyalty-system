@@ -27,6 +27,16 @@ On the POS page, use "Listen to reader" to poll this server and auto-fill the NF
 
 ---
 
+## Tray app and installer (Windows)
+
+For a **no-console** experience on POS PCs, use the **tray app**: it runs in the system tray (notification area) and can start with Windows.
+
+- **Build the installer**: See `tray/README.md`. In short: `cd tray`, `npm install`, `npm run pack`, then compile `installer/PosReaderSetup.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php). The installer exe is created in `installer/output/`.
+- **Tray menu**: Right‑click the tray icon for **Start when Windows starts**, **Open reader URL**, **Exit**.
+- Same HTTP API as the Node server (`localhost:31337`). For automatic ACR122U read, use the VB bridge or another app that POSTs the UID to the tray app.
+
+---
+
 ## Production / install on other computers
 
 **How `npm install` behaves**

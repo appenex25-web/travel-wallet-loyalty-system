@@ -1,0 +1,28 @@
+{
+  "name": "travel-wallet-pos-reader",
+  "version": "1.0.0",
+  "description": "NFC reader helper - runs in system tray, starts with Windows",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "pack": "electron-builder --win dir"
+  },
+  "build": {
+    "appId": "com.travelwallet.posreader",
+    "productName": "Travel Wallet NFC Reader",
+    "directories": { "output": "dist" },
+    "win": {
+      "target": "dir"
+    },
+    "extraResources": []
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}
