@@ -37,8 +37,9 @@ services:
     image: nginx:alpine
     volumes:
       - ./web-dist:/usr/share/nginx/html:ro
-    ports:
-      - "80:80"
+    # Port 80 left for host Nginx (HTTPS). Uncomment below if not using host Nginx:
+    # ports:
+    #   - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
