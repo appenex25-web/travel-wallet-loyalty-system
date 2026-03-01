@@ -31,6 +31,7 @@ async function bootstrap() {
       return null;
     }
   })() : null;
+  const isProduction = process.env.NODE_ENV === 'production';
   const origin = (originUrl: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!originUrl) return callback(null, true);
     try {
@@ -50,6 +51,7 @@ async function bootstrap() {
       if (u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || isPrivateOrLocalHost(u.hostname))) {
         return callback(null, true);
       }
+      if (isProduction && (u.protocol === 'https:' || u.protocol === 'http:')) return callback(null, true);
       callback(null, false);
     } catch {
       callback(null, false);

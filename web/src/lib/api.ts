@@ -39,7 +39,9 @@ export async function api<T>(
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }))
-    throw new Error((err as { message?: string }).message || 'Request failed')
+    const msg = (err as { message?: string }).message || res.statusText || 'Request failed'
+    if (res.status === 403) throw new Error(msg === 'Forbidden' ? 'You don’t have permission. Use an admin or agent account.' : msg)
+    throw new Error(msg)
   }
   return res.json()
 }
