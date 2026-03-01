@@ -31,6 +31,14 @@ app.options('*', (req, res) => {
 
 let lastUid = null;
 
+function uidToHex(uid) {
+  if (uid == null) return null;
+  if (typeof uid === 'string') return uid.trim().replace(/\s+/g, '').toUpperCase();
+  if (Buffer.isBuffer(uid)) return uid.toString('hex').toUpperCase();
+  if (Array.isArray(uid)) return Buffer.from(uid).toString('hex').toUpperCase();
+  return String(uid);
+}
+
 /** Clear cached UID. Call when starting a new scan so we don't show a stale card. */
 app.post('/uid/clear', (req, res) => {
   lastUid = null;
@@ -44,7 +52,7 @@ app.get('/uid', (req, res) => {
 
 app.post('/uid', (req, res) => {
   const uid = req.body?.uid;
-  lastUid = typeof uid === 'string' ? uid : null;
+  lastUid = uid != null ? uidToHex(uid) : null;
   res.json({ uid: lastUid });
 });
 
@@ -57,8 +65,8 @@ if (withReader) {
     nfc.on('reader', (reader) => {
       console.log(`Reader attached: ${reader.name}`);
       reader.on('card', (card) => {
-        lastUid = card.uid;
-        console.log(`Card: ${card.uid}`);
+        lastUid = uidToHex(card.uid) || null;
+        console.log(`Card: ${lastUid}`);
       });
       reader.on('error', (err) => console.error('Reader error:', err));
     });

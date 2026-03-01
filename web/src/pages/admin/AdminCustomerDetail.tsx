@@ -190,7 +190,11 @@ export default function AdminCustomerDetail() {
               {listening ? 'Cancel' : 'Scan card'}
             </button>
             {readerStatus === 'detected' && <span className="text-emerald-600 font-medium self-center">Card on reader — click Link card below</span>}
-            {readerStatus === 'no_card' && <span className="text-[var(--travel-muted)] font-medium self-center">No card on reader</span>}
+            {readerStatus === 'no_card' && (
+              <span className="text-[var(--travel-muted)] font-medium self-center">
+                No card detected. If the card is on the reader, try re-tapping or paste the UID manually below (e.g. from your reader’s app or <code className="bg-[var(--travel-cream)] px-1 rounded text-xs">pos-reader/set-uid.js</code>).
+              </span>
+            )}
             {readerStatus === 'unavailable' && (
               <span className="text-amber-600 text-sm self-center">
                 Reader helper not reachable. If you installed <strong>Travel Wallet NFC Reader</strong>, make sure it is <strong>running</strong> (check the system tray). Otherwise start it (see below).
@@ -216,8 +220,8 @@ export default function AdminCustomerDetail() {
           </button>
           <p className="text-xs text-[var(--travel-muted)] mt-3">
             <strong>Installed the tray app?</strong> Launch <strong>Travel Wallet NFC Reader</strong> from the Start Menu (or check the system tray). It must be running on this PC. <a href="http://localhost:31337/uid" target="_blank" rel="noopener noreferrer" className="text-[var(--travel-deep)] underline">Test reader</a> (opens in new tab; you should see <code className="bg-[var(--travel-cream)] px-1 rounded">{`{"uid":null}`}</code>).<br />
-            <strong>Using Node.js?</strong> In the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder run <code className="bg-[var(--travel-cream)] px-1 rounded">npm run start:reader</code> (or <code className="bg-[var(--travel-cream)] px-1 rounded">npm start</code>). Then click &quot;Scan card&quot; and tap the card.<br />
-            <strong>Reader not reachable?</strong> Use <strong>one link</strong> (your live site) + the <strong>helper app</strong> on this PC. For the browser to allow the link to talk to the reader, use <strong>HTTPS</strong> for your site, then in Chrome: this site’s settings → allow <strong>Local network access</strong>. Or paste the UID manually above and click Link card.
+            <strong>Card on reader but “No card detected”?</strong> On many Windows PCs the tray app cannot read the hardware automatically (no native driver). Use <strong>manual UID</strong>: get the UID from your reader’s app (e.g. ACS demo) or run <code className="bg-[var(--travel-cream)] px-1 rounded">node set-uid.js</code> in the <code className="bg-[var(--travel-cream)] px-1 rounded">pos-reader</code> folder and paste the UID above, then click Link card. Or use the <strong>VB bridge</strong> (<code className="bg-[var(--travel-cream)] px-1 rounded">nfc-windows-vb</code>) to POST the UID to the tray app.<br />
+            <strong>Reader not reachable?</strong> Use <strong>one link</strong> (your live site) + the <strong>helper app</strong> on this PC. For the browser to allow the link to talk to the reader, use <strong>HTTPS</strong> for your site, then in Chrome: this site’s settings → allow <strong>Local network access</strong>.
           </p>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {customer.nfcIdentifiers && customer.nfcIdentifiers.length > 0 && (

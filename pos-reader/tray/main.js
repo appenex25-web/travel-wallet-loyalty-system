@@ -9,6 +9,15 @@ const APP_URL = process.env.TRAVEL_WALLET_APP_URL || 'https://www.appenex.org';
 
 // --- Reader API (same as pos-reader server.js) ---
 let lastUid = null;
+
+function uidToHex(uid) {
+  if (uid == null) return null;
+  if (typeof uid === 'string') return uid.trim().replace(/\s+/g, '').toUpperCase();
+  if (Buffer.isBuffer(uid)) return uid.toString('hex').toUpperCase();
+  if (Array.isArray(uid)) return Buffer.from(uid).toString('hex').toUpperCase();
+  return String(uid);
+}
+
 const serverApp = express();
 serverApp.use(express.json());
 function corsHeaders(res) {
@@ -34,7 +43,7 @@ serverApp.get('/uid', (req, res) => {
 });
 serverApp.post('/uid', (req, res) => {
   const uid = req.body && req.body.uid;
-  lastUid = typeof uid === 'string' ? uid : null;
+  lastUid = uid != null ? uidToHex(uid) : null;
   res.json({ uid: lastUid });
 });
 
@@ -45,7 +54,9 @@ function tryStartNfcReader() {
     if (!NFC) return false;
     const nfc = new NFC();
     nfc.on('reader', (reader) => {
-      reader.on('card', (card) => { lastUid = card.uid; });
+      reader.on('card', (card) => {
+        lastUid = uidToHex(card.uid) || null;
+      });
       reader.on('error', () => {});
     });
     nfc.on('error', () => {});
