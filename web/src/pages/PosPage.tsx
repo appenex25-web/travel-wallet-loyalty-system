@@ -7,6 +7,9 @@ type CustomerSummary = {
   points: number
 }
 
+type Booking = { id: string; title: string | null; bookingType: string; totalAmount: number; currency: string; status: string }
+type MessageThread = { id: string; type: string; subject: string | null; createdAt: string }
+
 const READER_HELPER_URL = 'http://localhost:31337'
 
 /* ----- Inline SVG icons ----- */
@@ -67,6 +70,19 @@ export default function PosPage() {
   const [toast, setToast] = useState<string | null>(null)
   const simulateRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const seenEmptyAfterDrainRef = useRef(false)
+  const [posBookings, setPosBookings] = useState<Booking[]>([])
+  const [posThreads, setPosThreads] = useState<MessageThread[]>([])
+
+  useEffect(() => {
+    const cid = customerSummary?.customer?.id
+    if (!cid) {
+      setPosBookings([])
+      setPosThreads([])
+      return
+    }
+    api<Booking[]>(`/bookings?customerId=${cid}`).then(setPosBookings).catch(() => setPosBookings([]))
+    api<MessageThread[]>(`/messages/threads?customerId=${cid}`).then(setPosThreads).catch(() => setPosThreads([]))
+  }, [customerSummary?.customer?.id])
 
   const stopScanning = useCallback(() => {
     if (pollRef.current) {
@@ -291,6 +307,8 @@ export default function PosPage() {
         summary={customerSummary}
         onClose={closeCustomerWindow}
         onRefresh={() => refreshSummary(customerSummary.customer!.id)}
+        bookings={posBookings}
+        threads={posThreads}
       />
     )
   }
@@ -494,10 +512,14 @@ function CustomerWindow({
   summary,
   onClose,
   onRefresh,
+  bookings = [],
+  threads = [],
 }: {
   summary: CustomerSummary
   onClose: () => void
   onRefresh: () => Promise<void>
+  bookings?: Booking[]
+  threads?: MessageThread[]
 }) {
   const customer = summary.customer!
   const [addCashAmount, setAddCashAmount] = useState('')
@@ -703,6 +725,28 @@ function CustomerWindow({
       <p className="text-xs text-[#64748b]">
         Add purchase deducts from wallet and awards points based on admin rewards (bonus_points offer).
       </p>
+
+      {bookings.length > 0 && (
+        <div className="glass-card-pos p-4 ring-1 ring-white/10 text-left">
+          <h3 className="font-semibold text-[#2F7DFF] mb-2">Bookings ({bookings.length})</h3>
+          <ul className="space-y-1 text-sm text-[#1e293b]">
+            {bookings.map((b) => (
+              <li key={b.id}>{b.title ?? b.bookingType} · {b.currency} {Number(b.totalAmount).toFixed(2)} · {b.status}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {threads.length > 0 && (
+        <div className="glass-card-pos p-4 ring-1 ring-white/10 text-left">
+          <h3 className="font-semibold text-[#2F7DFF] mb-2">Messages ({threads.length})</h3>
+          <ul className="space-y-1 text-sm text-[#1e293b]">
+            {threads.map((t) => (
+              <li key={t.id}>{t.type}{t.subject ? ` · ${t.subject}` : ''} · {new Date(t.createdAt).toLocaleString()}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
