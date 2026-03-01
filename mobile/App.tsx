@@ -9,6 +9,7 @@ import { getTokenAsync } from './src/api';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+import TransactionPinScreen from './src/screens/TransactionPinScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import WalletScreen from './src/screens/WalletScreen';
 import QrScreen from './src/screens/QrScreen';
@@ -80,6 +81,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="TransactionPin" component={TransactionPinScreen} options={{ title: 'Transaction PIN' }} />
         <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Wallet" component={WalletScreen} options={{ title: 'Wallet' }} />
         <Stack.Screen name="Scan" component={QrScreen} options={{ title: 'Show at till' }} />

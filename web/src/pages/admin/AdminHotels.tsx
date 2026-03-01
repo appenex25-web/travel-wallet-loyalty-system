@@ -153,7 +153,7 @@ export default function AdminHotels() {
         : []
       if (form.imageFiles.length > 0) {
         setUploading(true)
-        const { urls } = await uploadCampaignImages(form.imageFiles)
+        const { urls } = await uploadCampaignImages(form.imageFiles.slice(0, 10))
         imageUrls = [...imageUrls, ...urls].slice(0, 10)
         setUploading(false)
       }

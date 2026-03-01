@@ -119,6 +119,8 @@ If you later change `app.json` or add Expo plugins, run `npx expo prebuild` agai
 | **B (terminal)** | One command to build and install; no need to open Android Studio. |
 | **C (Android Studio)** | Same as your other apps: open project, Gradle, Run. Full IDE (debugger, Logcat, signing). |
 
+**Building an APK to install on a phone:** See [Building the APK](../docs/MOBILE-BUILD-APK.md). You can use **Android Studio** (Build → Build APK(s); set `EXPO_PUBLIC_API_URL=https://www.appenex.org` in mobile/.env and run `npx expo prebuild` first) or **EAS Build** (`npm run build:apk` in mobile; requires EAS CLI and Expo account).
+
 ---
 
 ## Windows: “Filename longer than 260 characters”

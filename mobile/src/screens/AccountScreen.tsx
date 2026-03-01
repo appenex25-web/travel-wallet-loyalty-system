@@ -10,20 +10,24 @@ export default function AccountScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [hasPin, setHasPin] = useState<boolean>(false);
   const [saved, setSaved] = useState<{ id: string; title: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   async function load() {
     try {
-      const [c, s] = await Promise.all([
+      const [c, pinRes, s] = await Promise.all([
         api<Customer>('/customers/me'),
+        api<{ hasPin: boolean }>('/customers/me/has-pin').catch(() => ({ hasPin: false })),
         api<{ id: string; title: string }[]>('/campaigns/saved/me').catch(() => []),
       ]);
       setCustomer(c);
+      setHasPin(pinRes?.hasPin ?? false);
       setSaved(Array.isArray(s) ? s : []);
     } catch {
       setCustomer(null);
+      setHasPin(false);
       setSaved([]);
     } finally {
       setLoading(false);
@@ -57,6 +61,14 @@ export default function AccountScreen() {
           </View>
           <TouchableOpacity style={styles.link} onPress={() => navigation.getParent()?.navigate('ChangePassword')}>
             <Text style={styles.linkText}>Change password</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.link}
+            onPress={() => navigation.getParent()?.navigate('TransactionPin' as never, { hasPin } as never)}
+          >
+            <Text style={styles.linkText}>
+              {hasPin ? 'Change transaction PIN' : 'Create transaction PIN'}
+            </Text>
           </TouchableOpacity>
           {saved.length > 0 && (
             <>
