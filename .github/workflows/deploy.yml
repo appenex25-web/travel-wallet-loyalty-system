@@ -23,7 +23,11 @@ jobs:
         run: |
           cd web
           npm ci
-          echo "VITE_API_URL=http://${{ secrets.SERVER_IP }}:3000" > .env.production
+          if [ -n "${{ secrets.API_URL }}" ]; then
+            echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
+          else
+            echo "VITE_API_URL=http://${{ secrets.SERVER_IP }}:3000" > .env.production
+          fi
           npm run build
 
       - name: Deploy web app to server
