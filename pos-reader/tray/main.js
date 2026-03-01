@@ -1,5 +1,7 @@
 const { app, Tray, Menu, nativeImage, shell } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
+const fs = require('fs');
 const express = require('express');
 
 const PORT = Number(process.env.POS_READER_PORT) || 31337;
@@ -9,6 +11,8 @@ const APP_URL = process.env.TRAVEL_WALLET_APP_URL || 'https://www.appenex.org';
 
 // --- Reader API (same as pos-reader server.js) ---
 let lastUid = null;
+let readerOk = false;   // nfc-pcsc loaded and started
+let readerAttached = false;  // at least one reader seen
 
 function uidToHex(uid) {
   if (uid == null) return null;
@@ -39,7 +43,7 @@ serverApp.post('/uid/clear', (req, res) => {
   res.json({ ok: true });
 });
 serverApp.get('/uid', (req, res) => {
-  res.json({ uid: lastUid });
+  res.json({ uid: lastUid, readerOk, readerAttached });
 });
 serverApp.post('/uid', (req, res) => {
   const uid = req.body && req.body.uid;
@@ -52,8 +56,10 @@ function tryStartNfcReader() {
     const nfcPcsc = require('nfc-pcsc');
     const NFC = nfcPcsc.default || nfcPcsc;
     if (!NFC) return false;
+    readerOk = true;
     const nfc = new NFC();
     nfc.on('reader', (reader) => {
+      readerAttached = true;
       reader.on('card', (card) => {
         lastUid = uidToHex(card.uid) || null;
       });
@@ -68,6 +74,7 @@ function tryStartNfcReader() {
 
 let tray = null;
 let server = null;
+let vbBridgeProcess = null;
 
 const FALLBACK_ICON = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAHklEQVQ4T2NkYGD4z0ABYBw1gGE0DBgZGBj+Ux' +
@@ -77,7 +84,6 @@ const FALLBACK_ICON = Buffer.from(
 
 function getTrayIcon() {
   const iconPath = path.join(__dirname, 'icon.png');
-  const fs = require('fs');
   if (fs.existsSync(iconPath)) {
     const img = nativeImage.createFromPath(iconPath);
     if (!img.isEmpty()) return img.resize({ width: 16, height: 16 });
@@ -122,10 +128,32 @@ function createTray() {
   ]));
 }
 
+function startVbBridge() {
+  let exePath;
+  if (app.isPackaged) {
+    exePath = path.join(process.resourcesPath, 'nfc-bridge', 'NfcReader.exe');
+  } else {
+    exePath = path.join(__dirname, '..', 'nfc-windows-vb', 'bin', 'Release', 'net8.0', 'win-x64', 'publish', 'NfcReader.exe');
+  }
+  if (!fs.existsSync(exePath)) return;
+  try {
+    vbBridgeProcess = spawn(exePath, [], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+      cwd: path.dirname(exePath),
+    });
+    vbBridgeProcess.unref();
+  } catch (e) {
+    vbBridgeProcess = null;
+  }
+}
+
 function startServer() {
   return new Promise((resolve, reject) => {
     server = serverApp.listen(PORT, '127.0.0.1', () => {
       tryStartNfcReader();
+      startVbBridge();
       resolve();
     });
     server.on('error', reject);
@@ -146,5 +174,9 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {});
 app.on('before-quit', () => {
+  if (vbBridgeProcess) {
+    try { vbBridgeProcess.kill(); } catch (_) {}
+    vbBridgeProcess = null;
+  }
   if (server) server.close();
 });

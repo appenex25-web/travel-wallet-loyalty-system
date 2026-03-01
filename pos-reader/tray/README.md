@@ -6,10 +6,15 @@ Runs the NFC reader helper as a Windows app that sits in the system tray (notifi
 - **Start when Windows starts** – tick “Start when Windows starts” in the tray menu (or choose it during installation).
 - **Open Travel Wallet** – tray menu opens your one link (e.g. https://www.appenex.org). No separate admin; use that link for POS, admin, and NFC linking.
 - **Same API** – serves `http://localhost:31337/uid` (and `/uid/clear`, POST `/uid`) like the Node.js `server.js`.
+- **Automatic card read** – when built with the full installer, the tray app starts the bundled NFC bridge (VB). Tap a card on the ACR122U and the UID appears in the web app automatically (no manual paste).
 
 Use the **one link** (from the tray or in the browser); for Scan card to work, the site must be **HTTPS** and you allow **Local network access** in Chrome (see docs/ONE-LINK-NFC.md). Set `TRAVEL_WALLET_APP_URL` to use a different app URL.
 
 ## Build the installer
+
+**Recommended:** from the `pos-reader` folder run `build-installer.bat`. It builds the NFC bridge (VB, requires .NET 8 SDK), packs the tray app with it, and runs Inno Setup. Installer: `pos-reader/installer/output/TravelWalletNfcReader-Setup-1.0.0.exe`.
+
+**Manual steps:**
 
 1. **Install dependencies** (once):
    ```bash
