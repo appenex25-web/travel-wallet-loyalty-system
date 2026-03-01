@@ -123,3 +123,26 @@ If you had added them **after** the last `server { }` block (outside any server 
 3. **Add** them in the right place (inside the first server block, as in Step 4).
 4. Save (Ctrl+O, Enter) and exit (Ctrl+X).
 5. Run again: `nginx -t && systemctl reload nginx`.
+
+---
+
+## Fix "Cannot GET /admin/reservations" on refresh
+
+If reloading **https://www.appenex.org/admin/reservations** gives a 404 JSON error:
+
+1. Open the config: `nano /etc/nginx/sites-available/appenex.conf`
+2. **Remove `admin`** from the API proxy line so it does **not** send `/admin/*` to the backend.  
+   Change:
+   ```text
+   location ~ ^/(auth|users|customers|pos|admin|uploads|...
+   ```
+   to:
+   ```text
+   location ~ ^/(auth|users|customers|pos|uploads|...
+   ```
+   (delete the `|admin` part; keep the rest.)
+3. **Add** this line after the `location = /login ...` line (same 4-space indent):
+   ```text
+   location ^~ /admin/ { try_files $uri $uri/ /index.html; }
+   ```
+4. Save (Ctrl+O, Enter), exit (Ctrl+X), then run: `nginx -t && systemctl reload nginx`.

@@ -87,6 +87,17 @@ export default function AdminReservations() {
   }, [])
 
   useEffect(() => {
+    const interval = setInterval(load, 30_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const onFocus = () => load()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  useEffect(() => {
     if (tab === 'all') {
       setBookings(allBookings)
     } else if (tab === 'transport') {

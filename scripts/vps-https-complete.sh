@@ -33,8 +33,9 @@ server {
     location = /pos { try_files /index.html =404; }
     location = /admin { try_files /index.html =404; }
     location = /login { try_files /index.html =404; }
+    location ^~ /admin/ { try_files $uri $uri/ /index.html; }
 
-    location ~ ^/(auth|users|customers|pos|admin|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet) {
+    location ~ ^/(auth|users|customers|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet) {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
