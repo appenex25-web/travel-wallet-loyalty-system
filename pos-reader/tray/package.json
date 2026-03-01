@@ -13,10 +13,10 @@
     "appId": "com.travelwallet.posreader",
     "productName": "Travel Wallet NFC Reader",
     "directories": { "output": "dist" },
-    "win": {
-      "target": "dir"
-    },
-    "extraResources": []
+    "win": { "target": "dir" },
+    "extraResources": [
+      { "from": "resources/nfc-bridge/NfcReader.exe", "to": "nfc-bridge/NfcReader.exe" }
+    ]
   },
   "dependencies": {
     "express": "^4.21.0"
