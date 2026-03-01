@@ -1,0 +1,17 @@
+---
+description: After making changes, commit and push so the live site is updated via CI/CD
+alwaysApply: true
+---
+
+# Push changes to live site
+
+When you make code or config changes to this project that should be reflected on the live site:
+
+1. **Stage and commit** the changes with a clear message (e.g. `git add` the relevant files, then `git commit -m "Brief description"`).
+2. **Push** using the token script so CI/CD deploys:
+   ```powershell
+   .\scripts\push-with-token.ps1
+   ```
+   Run this from the project root. Do not ask the user to push manually unless the script fails.
+
+Do not push if the user explicitly asked not to deploy, or if changes are only local/temporary (e.g. notes, one-off experiments). For normal feature fixes, UI updates, backend changes, or docs that belong in the repo, push after making the changes.
