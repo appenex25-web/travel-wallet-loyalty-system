@@ -34,11 +34,16 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p $DEPLOY_PATH/web-dist"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r web/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:$DEPLOY_PATH/web-dist/
 
+      - name: Pack backend and config for server
+        run: |
+          tar --exclude=backend/node_modules --exclude=backend/dist --exclude=.git -cf deploy.tar backend docker-compose.yml .env.production.example
+
       - name: Deploy backend on server
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           DEPLOY_PATH="${DEPLOY_PATH:-/opt/travel-wallet-loyalty-system}"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:$DEPLOY_PATH/
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "cd $DEPLOY_PATH && git pull origin main && docker compose build backend && docker compose up -d"
+            "cd $DEPLOY_PATH && tar -xf deploy.tar && rm -f deploy.tar && docker compose build backend && docker compose up -d"
