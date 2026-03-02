@@ -332,7 +332,7 @@ function POSFullPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
       <div
         className="fixed inset-0 -z-20 bg-cover bg-center"
         style={{ backgroundImage: "url(/assets/bg-everest.jpg)" }}
@@ -389,9 +389,9 @@ function POSFullPage() {
         </nav>
       </header>
 
-      {/* Content area: flex-1, no scroll */}
-      <main className="flex-1 min-h-0 flex flex-col overflow-hidden relative z-10">
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-12 pt-8">
+      {/* Content area: flex-1, allow page to scroll if needed */}
+      <main className="flex-1 flex flex-col relative z-10">
+        <div className="flex-1 min-h-0 flex flex-col overflow-x-hidden px-12 pt-8">
           <div className="max-w-[1240px] mx-auto flex flex-col flex-1 min-h-0">
             <div className="max-w-[900px] mx-auto text-center pt-4 pb-6 flex-shrink-0">
               <h1 className="text-[56px] font-extrabold text-[#2F7DFF] tracking-tight m-0">
