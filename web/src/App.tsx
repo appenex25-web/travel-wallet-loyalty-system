@@ -589,6 +589,14 @@ function POSFullPage() {
             </GlassSurface>
           </button>
         </section>
+
+        {/* Footer: Emollry Creative Group */}
+        <footer className="flex-shrink-0 pt-4 pb-6 text-center text-sm" style={{ color: 'rgba(11,27,58,0.75)', textShadow: '0 1px 2px rgba(255,255,255,0.2)' }}>
+          <p className="font-medium m-0">A SUBSIDIARY OF THE EMOLLRY CREATIVE GROUP</p>
+          <a href="https://www.emollry.com" target="_blank" rel="noopener noreferrer" className="text-[#2F7DFF] hover:underline mt-1 inline-block">
+            www.emollry.com
+          </a>
+        </footer>
       </main>
 
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -824,6 +832,13 @@ function CustomerWindow({
           </ul>
         </div>
       )}
+
+      <footer className="pt-6 pb-4 text-center text-sm text-white/80">
+        <p className="font-medium m-0">A SUBSIDIARY OF THE EMOLLRY CREATIVE GROUP</p>
+        <a href="https://www.emollry.com" target="_blank" rel="noopener noreferrer" className="text-[#2F7DFF] hover:underline mt-1 inline-block">
+          www.emollry.com
+        </a>
+      </footer>
     </div>
   )
 }
