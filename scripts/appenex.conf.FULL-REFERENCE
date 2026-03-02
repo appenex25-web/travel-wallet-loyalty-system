@@ -1,0 +1,103 @@
+# ============================================================
+# FULL REFERENCE: appenex.conf as it should be on the server
+# ============================================================
+# On the VPS, the file is: /etc/nginx/sites-available/appenex.conf
+# To compare or replace: nano /etc/nginx/sites-available/appenex.conf
+# After editing: nginx -t && systemctl reload nginx
+# ============================================================
+
+# ----- BLOCK 1: HTTPS (port 443) - this one serves https://appenex.org -----
+server {
+    listen [::]:443 ssl ipv6only=on;  # managed by Certbot
+    listen 443 ssl;                     # managed by Certbot
+    server_name appenex.org www.appenex.org;
+    root /opt/travel-wallet-loyalty-system/web-dist;
+    index index.html;
+
+    ssl_certificate /etc/letsencrypt/live/appenex.org/fullchain.pem;      # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/appenex.org/privkey.pem;   # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf;                      # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;                        # managed by Certbot
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+        allow all;
+    }
+
+    location = /pos { try_files /index.html =404; }
+    location = /admin { try_files /index.html =404; }
+    location = /login { try_files /index.html =404; }
+    # Admin API (backend); must be before the SPA catch-all for /admin/
+    location ^~ /admin/dashboard/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /admin/customers {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /admin/offers {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /admin/campaigns {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /admin/branches {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /admin/ { try_files $uri $uri/ /index.html; }
+
+    location ~ ^/(auth|users|customers|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet) {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# ----- BLOCK 2: HTTP (port 80) - redirects to HTTPS or returns 404 -----
+server {
+    if ($host = www.appenex.org) {
+        return 301 https://$host$request_uri;
+    }  # managed by Certbot
+
+    if ($host = appenex.org) {
+        return 301 https://$host$request_uri;
+    }  # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name appenex.org www.appenex.org;
+    return 404;  # managed by Certbot
+}

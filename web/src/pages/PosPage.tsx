@@ -475,7 +475,7 @@ export default function PosPage() {
         )}
 
         {/* Bottom quick actions: 3 floating glass tiles */}
-        <div className="flex flex-wrap justify-center gap-4 mt-8 pb-8">
+        <div className="flex flex-wrap justify-center gap-4 mt-8 pb-4">
           <button
             type="button"
             onClick={() => document.querySelector<HTMLInputElement>('input[placeholder*="Name, email"]')?.focus()}
@@ -501,6 +501,14 @@ export default function PosPage() {
             <span className="text-sm font-medium mt-2">Scan QR</span>
           </button>
         </div>
+
+        {/* Footer: Emollry Creative Group */}
+        <footer className="mt-auto pt-6 pb-8 text-center text-white/80 text-sm" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+          <p className="font-medium">A SUBSIDIARY OF THE EMOLLRY CREATIVE GROUP</p>
+          <a href="https://www.emollry.com" target="_blank" rel="noopener noreferrer" className="text-[#2F7DFF] hover:underline mt-1 inline-block">
+            www.emollry.com
+          </a>
+        </footer>
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
