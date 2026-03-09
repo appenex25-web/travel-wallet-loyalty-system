@@ -62,3 +62,27 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
             "cd $DEPLOY_PATH && (grep -q '^API_BASE_URL=' .env 2>/dev/null && sed -i.bak 's|^API_BASE_URL=.*|API_BASE_URL=$API_URL|' .env || echo 'API_BASE_URL=$API_URL' >> .env) && docker compose up -d backend"
+
+      - name: Sync Nginx config (appenex.conf)
+        run: |
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/appenex.conf.FULL-REFERENCE ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/appenex.conf
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+            "mv /tmp/appenex.conf /etc/nginx/sites-available/appenex.conf && ln -sf /etc/nginx/sites-available/appenex.conf /etc/nginx/sites-enabled/appenex.conf && nginx -t && systemctl reload nginx"
+
+      - name: Verify /health endpoint via Nginx
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          set -e
+          TARGET="${API_URL:-https://www.appenex.org}"
+          echo "Checking $TARGET/health"
+          curl -fsS -D /tmp/health-headers.txt -o /tmp/health-body.txt "$TARGET/health"
+          if ! grep -qi 'content-type: application/json' /tmp/health-headers.txt; then
+            echo "Unexpected Content-Type for /health:"
+            cat /tmp/health-headers.txt
+            echo ""
+            echo "Body:"
+            cat /tmp/health-body.txt
+            exit 1
+          fi

@@ -128,21 +128,25 @@ If you had added them **after** the last `server { }` block (outside any server 
 
 ## Fix "Cannot GET /admin/reservations" on refresh
 
-If reloading **https://www.appenex.org/admin/reservations** gives a 404 JSON error:
+If **https://www.appenex.org/admin/reservations** gives a 404 JSON error, the fix must be in the **HTTPS** server block (the one with `listen 443 ssl`). You may have two `server { }` blocks; the browser uses the 443 one for https.
 
 1. Open the config: `nano /etc/nginx/sites-available/appenex.conf`
-2. **Remove `admin`** from the API proxy line so it does **not** send `/admin/*` to the backend.  
-   Change:
+2. Find the server block that has **`listen 443 ssl`** (use Ctrl+W in nano to search for “443”).
+3. Inside **that same** block, find the line that looks like:
    ```text
-   location ~ ^/(auth|users|customers|pos|admin|uploads|...
+   location ~ ^/(auth|users|customers|pos|admin|uploads|messages|bookings|...
    ```
-   to:
+4. **Remove `|admin`** from that line (so `/admin/reservations` is not sent to the backend).  
+   It must **not** contain the word `admin`. For example:
    ```text
-   location ~ ^/(auth|users|customers|pos|uploads|...
+   location ~ ^/(auth|users|customers|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet|health) {
    ```
-   (delete the `|admin` part; keep the rest.)
-3. **Add** this line after the `location = /login ...` line (same 4-space indent):
+   (no `pos` and no `admin` in that list.)
+5. In the **same 443 server block**, ensure you have this line (after `location = /login ...`):
    ```text
    location ^~ /admin/ { try_files $uri $uri/ /index.html; }
    ```
-4. Save (Ctrl+O, Enter), exit (Ctrl+X), then run: `nginx -t && systemctl reload nginx`.
+   If it’s missing, add it with the same 4-space indent as other `location` lines.
+6. Save (Ctrl+O, Enter), exit (Ctrl+X), then run: `nginx -t && systemctl reload nginx`.
+
+**Important:** If you have two `server { }` blocks (one for port 80, one for port 443), apply steps 3–5 **inside the block that contains `listen 443 ssl`**. That is the block used for https://appenex.org.

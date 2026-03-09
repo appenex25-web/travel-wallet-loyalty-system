@@ -31,7 +31,7 @@ server {
     location = /login { try_files /index.html =404; }
 
     # API proxy
-    location ~ ^/(auth|users|customers|pos|admin|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet) {
+    location ~ ^/(auth|users|customers|pos|admin|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet|health) {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
