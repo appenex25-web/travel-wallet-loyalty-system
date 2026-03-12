@@ -139,7 +139,7 @@ If **https://www.appenex.org/admin/reservations** gives a 404 JSON error, the fi
 4. **Remove `|admin`** from that line (so `/admin/reservations` is not sent to the backend).  
    It must **not** contain the word `admin`. For example:
    ```text
-   location ~ ^/(auth|users|customers|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet|health) {
+   location ~ ^/(auth|users|customers|uploads|messages|bookings|campaigns|posts|catalog|qr|points|wallet|health|hotels|flights) {
    ```
    (no `pos` and no `admin` in that list.)
 5. In the **same 443 server block**, ensure you have this line (after `location = /login ...`):
